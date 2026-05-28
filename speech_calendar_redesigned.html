@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Логопед-Календарь | Расписание</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7f9 0%, #f0ebe3 100%);
+            margin: 0;
+            padding: 12px;
+            min-height: 100vh;
+        }
+        
+        .app-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+            flex-wrap: wrap-reverse;
+        }
+        
+        /* ========== МОБИЛЬНАЯ АДАПТАЦИЯ ========== */
+        @media (max-width: 1024px) {
+            .app-container {
+                gap: 16px;
+                padding: 0 8px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+            .app-container {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .sidebar {
+                flex: 0 0 100% !important;
+                max-height: fit-content;
+                order: 2;
+            }
+            .calendar-panel {
+                flex: 0 0 100% !important;
+                min-width: unset !important;
+                order: 1;
+            }
+        }
+        
+        /* ========== БОКОВАЯ ПАНЕЛЬ ========== */
+        .sidebar {
+            flex: 0 0 360px;
+            background: linear-gradient(135deg, #fef9f3 0%, #faf6f1 100%);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            height: fit-content;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(200, 180, 160, 0.2);
+        }
+        
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 10px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(150, 120, 100, 0.2);
+            border-radius: 10px;
+        }
+        
+        /* ========== КАЛЕНДАРНАЯ ПАНЕЛЬ ========== */
+        .calendar-panel {
+            flex: 1;
+            min-width: 500px;
+            background: linear-gradient(135deg, #ffffff 0%, #faf8f5 100%);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+            padding: 20px;
+            overflow-x: auto;
+            border: 1px solid rgba(200, 180, 160, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-panel {
+                min-width: unset;
+                padding: 14px;
+            }
+            .sidebar {
+                flex: 0 0 100%;
+            }
+        }
+        
+        /* ========== ЗАГОЛОВОК И НАВИГАЦИЯ ========== */
+        .header-views {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: linear-gradient(135deg, #f5e6d3 0%, #ede0d4 100%);
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(200, 170, 140, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .header-views {
+                padding: 12px;
+                margin-bottom: 14px;
+                gap: 8px;
+            }
+        }
+        
+        .view-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .btn-view {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(150, 120, 100, 0.15);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            color: #8b7d73;
+        }
+        
+        .btn-view:hover {
+            background: rgba(200, 170, 140, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .btn-view.active {
+            background: linear-gradient(135deg, #d4c5b9 0%, #c9bdb2 100%);
+            color: #5a4a3a;
+            box-shadow: 0 2px 8px rgba(150, 120, 100, 0.2);
+            border-color: rgba(150, 120, 100, 0.3);
+        }
+        
+        @media (max-width: 480px) {
+            .btn-view {
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+        }
+        
+        .nav-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(150, 120, 100, 0.15);
+            border-radius: 18px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #8b7d73;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(200, 170, 140, 0.15);
+            transform: scale(1.05);
+        }
+        
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .current-period {
+            font-weight: 700;
+            min-width: 180px;
+            text-align: center;
+            color: #5a4a3a;
+            font-size: 0.95rem;
+        }
+        
+        @media (max-width: 480px) {
+            .current-period {
+                min-width: 140px;
+                font-size: 0.85rem;
+            }
+            .nav-btn {
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+        }
+        
+        /* ========== МЕСЯЧНЫЙ ВИД ========== */
+        .month-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .week-row {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .month-day-cell {
+            flex: 1;
+            min-height: 90px;
+            border: 1px solid rgba(180, 150, 130, 0.15);
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fffbf7 0%, #faf8f5 100%);
+            padding: 6px;
+            overflow-y: auto;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .month-day-cell:hover {
+            background: linear-gradient(135deg, #fff5ed 0%, #f5f0eb 100%);
+            box-shadow: 0 2px 8px rgba(150, 120, 100, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .month-day-header {
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-align: center;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(150, 120, 100, 0.1);
+            color: #8b7d73;
+        }
+        
+        .month-event {
+            font-size: 0.65rem;
+            margin: 3px 0;
+            padding: 4px 6px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .month-event:hover {
+            transform: scale(0.98);
+        }
+        
+        .weekend-day {
+            background-color: rgba(200, 180, 160, 0.08);
+            color: #b0a090;
+        }
+        
+        /* ========== НЕДЕЛЬНЫЙ ВИДА ========== */
+        .week-columns {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .week-day-col {
+            flex: 1;
+            border: 1px solid rgba(180, 150, 130, 0.15);
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fffbf7 0%, #faf8f5 100%);
+            min-width: 120px;
+            overflow: hidden;
+        }
+        
+        .week-day-header {
+            background: linear-gradient(135deg, #f5e6d3 0%, #ede0d4 100%);
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(150, 120, 100, 0.15);
+            color: #5a4a3a;
+            font-size: 0.85rem;
+        }
+        
+        .week-slot {
+            padding: 8px;
+            border-bottom: 1px solid rgba(180, 150, 130, 0.08);
+            min-height: 65px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .week-slot:hover {
+            background: rgba(200, 170, 140, 0.05);
+        }
+        
+        .slot-free {
+            background: linear-gradient(135deg, #f0f8f4 0%, #e8f4f0 100%);
+            border-left: 3px solid #b8dcc9;
+        }
+        
+        .slot-busy {
+            background: linear-gradient(135deg, #fce8e8 0%, #f8dfe0 100%);
+            border-left: 3px solid #dba9a9;
+        }
+        
+        .slot-group {
+            background: linear-gradient(135deg, #fff8e8 0%, #fdf3e0 100%);
+            border-left: 3px solid #dcc9a2;
+        }
+        
+        .slot-break {
+            background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+            border-left: 3px solid #b8b8b8;
+            text-align: center;
+            font-style: italic;
+            color: #8b8b8b;
+        }
+        
+        .slot-weekend {
+            background: linear-gradient(135deg, #f8f6f4 0%, #f0ebe3 100%);
+            text-align: center;
+            font-style: italic;
+            color: #b0a090;
+        }
+        
+        @media (max-width: 768px) {
+            .week-day-col {
+                min-width: 100px;
+            }
+            .week-slot {
+                min-height: 55px;
+                padding: 6px;
+                font-size: 0.8rem;
+            }
+        }
+        
+        /* ========== ИНФОРМАЦИЯ О ЗАПИСИ ========== */
+        .appointment-info {
+            font-size: 0.7rem;
+            word-break: break-word;
+            color: #5a4a3a;
+        }
+        
+        .actions-icons {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        
+        .icon-btn {
+            background: rgba(200, 170, 140, 0.15);
+            border: none;
+            cursor: pointer;
+            font-size: 0.65rem;
+            padding: 3px 6px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            color: #8b7d73;
+            border: 1px solid rgba(200, 170, 140, 0.25);
+        }
+        
+        .icon-btn:hover {
+            background: rgba(200, 170, 140, 0.25);
+            transform: scale(1.1);
+        }
+        
+        /* ========== ФОРМЫ ========== */
+        .form-card {
+            background: linear-gradient(135deg, #fff5ed 0%, #fef0e8 100%);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(200, 170, 140, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        .form-card h4 {
+            margin: 0 0 14px 0;
+            color: #5a4a3a;
+            font-size: 0.95rem;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 5px;
+            color: #8b7d73;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 9px 11px;
+            border: 1px solid rgba(150, 120, 100, 0.2);
+            border-radius: 12px;
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.8);
+            color: #5a4a3a;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: rgba(200, 170, 140, 0.4);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(200, 170, 140, 0.1);
+        }
+        
+        select:disabled {
+            background-color: rgba(200, 180, 160, 0.1);
+            color: #b0a090;
+            cursor: not-allowed;
+        }
+        
+        button.primary {
+            background: linear-gradient(135deg, #d4c5b9 0%, #c9bdb2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 9px 18px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(150, 120, 100, 0.15);
+        }
+        
+        button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(150, 120, 100, 0.25);
+        }
+        
+        button.primary:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary {
+            background: rgba(200, 170, 140, 0.15);
+            color: #8b7d73;
+            border: 1px solid rgba(200, 170, 140, 0.3);
+            border-radius: 20px;
+            padding: 9px 18px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        
+        button.secondary:hover {
+            background: rgba(200, 170, 140, 0.25);
+        }
+        
+        @media (max-width: 480px) {
+            button.primary, button.secondary {
+                padding: 8px 14px;
+                font-size: 0.8rem;
+                width: 100%;
+            }
+        }
+        
+        /* ========== СПИСКИ ========== */
+        .client-list-item, .service-list-item {
+            background: linear-gradient(135deg, #f8f6f4 0%, #f3f0ed 100%);
+            border-radius: 12px;
+            padding: 11px;
+            margin-bottom: 8px;
+            font-size: 0.75rem;
+            border: 1px solid rgba(200, 170, 140, 0.15);
+            transition: all 0.2s ease;
+        }
+        
+        .client-list-item:hover {
+            background: linear-gradient(135deg, #f5f2f0 0%, #efefec 100%);
+            box-shadow: 0 2px 6px rgba(150, 120, 100, 0.1);
+        }
+        
+        .client-name {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #5a4a3a;
+            margin-bottom: 4px;
+        }
+        
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            align-items: center;
+            color: #5a4a3a;
+        }
+        
+        .widget-header strong {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        
+        .widget-header button {
+            padding: 4px 10px;
+            font-size: 0.75rem;
+        }
+        
+        @media (max-width: 480px) {
+            .widget-header {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .client-list-item, .service-list-item {
+                font-size: 0.7rem;
+                padding: 8px;
+            }
+        }
+        
+        /* ========== МОДАЛЬНОЕ ОКНО ========== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #fffbf7 0%, #faf6f1 100%);
+            max-width: 600px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid rgba(200, 170, 140, 0.2);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-content h3 {
+            color: #5a4a3a;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .modal-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.02);
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background: rgba(150, 120, 100, 0.2);
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 480px) {
+            .modal {
+                padding: 12px;
+            }
+            .modal-content {
+                padding: 16px;
+                border-radius: 20px;
+            }
+        }
+        
+        /* ========== УТИЛИТЫ ========== */
+        .medical-checks {
+            display: flex;
+            gap: 12px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        .medical-checks label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: none;
+            letter-spacing: normal;
+            font-weight: 500;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+        
+        .medical-checks input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            cursor: pointer;
+        }
+        
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        
+        @media (max-width: 480px) {
+            .flex-between {
+                flex-direction: column;
+            }
+        }
+        
+        .text-small {
+            font-size: 0.7rem;
+            color: #8b7d73;
+        }
+        
+        .error-msg {
+            color: #d97070;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            padding: 8px;
+            background: rgba(217, 112, 112, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #d97070;
+        }
+        
+        .success-msg {
+            color: #70b070;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            padding: 8px;
+            background: rgba(112, 176, 112, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #70b070;
+        }
+        
+        .add-disorder-btn {
+            background: linear-gradient(135deg, #e8e0d8 0%, #dfd8d0 100%);
+            border: 1px dashed rgba(150, 120, 100, 0.3);
+            border-radius: 12px;
+            padding: 7px 8px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin-top: 6px;
+            width: 100%;
+            text-align: center;
+            color: #8b7d73;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .add-disorder-btn:hover {
+            background: linear-gradient(135deg, #dfd8d0 0%, #d6cfc7 100%);
+            border-color: rgba(150, 120, 100, 0.5);
+        }
+        
+        /* ========== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ МОБИЛЬНОЙ ВЕРСИИ ========== */
+        @media (max-width: 480px) {
+            .header-views {
+                flex-direction: column;
+            }
+            .view-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            .nav-controls {
+                width: 100%;
+                justify-content: center;
+            }
+            .month-day-cell {
+                min-height: 75px;
+            }
+            .week-slot {
+                min-height: 50px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="calendar-panel">
+        <div class="header-views">
+            <div class="view-buttons">
+                <button class="btn-view" data-view="day">День</button>
+                <button class="btn-view" data-view="week">Неделя</button>
+                <button class="btn-view active" data-view="month">Месяц</button>
+            </div>
+            <div class="nav-controls">
+                <button class="nav-btn" id="prevPeriodBtn">◀</button>
+                <span class="current-period" id="currentPeriodLabel"></span>
+                <button class="nav-btn" id="nextPeriodBtn">▶</button>
+                <button class="nav-btn" id="todayBtn">Сегодня</button>
+            </div>
+        </div>
+        <div id="calendarContainer"></div>
+    </div>
+
+    <div class="sidebar">
+        <div class="form-card">
+            <h4>Запись на занятие</h4>
+            <div class="form-group"><label>Ребёнок</label><select id="appointmentClientId"></select></div>
+            <div class="form-group"><label>Услуга</label><select id="appointmentServiceId"></select></div>
+            
+            <div class="form-group" id="subscriptionGroup">
+                <label>Тип оплаты</label>
+                <select id="subscriptionType">
+                    <option value="single">Разовое занятие (1 урок)</option>
+                    <option value="pair">Парное занятие (2 урока на неделе)</option>
+                    <option value="subscription">Абонемент (8 занятий)</option>
+                </select>
+            </div>
+            
+            <div class="form-group"><label>Дата занятия</label><input type="date" id="appointmentDate"></div>
+            <div class="form-group"><label>Время</label><select id="appointmentTime"></select></div>
+            <div class="form-group"><label>Заметки</label><textarea id="appointmentNotes" rows="2" placeholder="Особенности..."></textarea></div>
+            <div class="flex-between">
+                <button class="primary" id="saveAppointmentBtn">Сохранить</button>
+                <button class="secondary" id="cancelAppointmentBtn">Отмена</button>
+            </div>
+            <div id="appointmentError" class="error-msg"></div>
+        </div>
+
+        <div>
+            <div class="widget-header"><strong>Дети (логопедические карты)</strong><button class="primary" id="addClientBtn">+ Добавить</button></div>
+            <div id="clientListContainer"></div>
+        </div>
+
+        <div>
+            <div class="widget-header"><strong>Услуги</strong></div>
+            <div id="serviceListContainer"></div>
+        </div>
+
+        <div>
+            <div class="widget-header"><strong>Свободные окна (сегодня)</strong><button id="refreshFreeSlots">⟳</button></div>
+            <div id="freeSlotsList" class="text-small"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== ДАННЫЕ ==========
+    let clients = [];
+    let services = [];
+    let appointments = [];
+    let speechDisordersList = ["Дизартрия (массаж)", "Дислалия", "Запуск речи", "Рече-слуховая агнозия", "Диспраксия", "Другое"];
+    let currentView = "month";
+    let currentDate = new Date();
+    let editAppointmentId = null;
+
+    const STORAGE_KEYS = {
+        clients: 'speech_calendar_clients_v3',
+        services: 'speech_calendar_services_v3',
+        appointments: 'speech_calendar_appointments_v3',
+        disorders: 'speech_disorders_list'
+    };
+
+    const defaultServices = [
+        { id: "svc_exam", name: "Первичное обследование", durationMin: 40, type: "individual", maxCapacity: 1, price: "1000 руб", color: "#e8d5c4", hasSubscription: false },
+        { id: "svc_usual", name: "Обычное занятие", durationMin: 40, type: "individual", maxCapacity: 1, price: "1000 руб", color: "#e0ead8", hasSubscription: true },
+        { id: "svc_school", name: "Подготовка к школе", durationMin: 90, type: "group", maxCapacity: 6, price: "700 руб", color: "#f5e8d5", hasSubscription: false }
+    ];
+
+    const scheduleMap = {
+        1: ["09:00", "09:50", "10:40", "11:30", "12:20", "14:00", "14:50", "15:40", "16:30", "17:20"],
+        2: ["09:00", "09:50", "10:40", "11:30", "12:20", "14:00", "14:50", "15:40", "16:30", "17:20", "18:10"],
+        3: ["09:00", "09:50", "10:40", "11:30", "12:20", "14:00", "14:50", "15:40", "16:30", "17:20"],
+        4: ["09:00", "09:50", "10:40", "11:30", "12:20", "14:00", "14:50", "15:40", "16:30", "17:20", "18:10"]
+    };
+
+    function initDefaultClients() {
+        return [
+            { id: "c1", fullName: "Волкова Татьяна Дмитриевна", age: "5 лет", parentName: "Волкова Кристина Анатольевна", phone: "+7 (916) 111-22-33", medical: { surdolog: false, psikhiatr: false, nevrolog: false }, anamnesis: "Беременность плохая, роды раньше срока. Говорить начала в 2 года.", speechDisorder: "Дислалия (Ш, Щ, Ч)", speechSounds: "Ш, Щ, Ч", extraInfo: "Аллергия на сладкое" },
+            { id: "c2", fullName: "Иванов Артём Сергеевич", age: "6 лет", parentName: "Иванова Ольга Викторовна", phone: "+7 (915) 222-33-44", medical: { surdolog: true, psikhiatr: false, nevrolog: true }, anamnesis: "Беременность без осложнений", speechDisorder: "Дизартрия (массаж)", speechSounds: "Р, Л", extraInfo: "" },
+            { id: "c3", fullName: "Петрова София Андреевна", age: "4 года 6 мес", parentName: "Петрова Елена Владимировна", phone: "+7 (917) 333-44-55", medical: { surdolog: false, psikhiatr: true, nevrolog: false }, anamnesis: "Кесарево сечение", speechDisorder: "Запуск речи", speechSounds: "—", extraInfo: "" }
+        ];
+    }
+
+    function isWorkingDay(date) {
+        const day = date.getDay();
+        return day >= 1 && day <= 4;
+    }
+
+    // ========== ЛОГИКА ДАТ И СОХРАНЕНИЯ ==========
+
+    function calculatePairDate(date) {
+        const day = date.getDay();
+        let pairDate = new Date(date);
+        if (day === 1) pairDate.setDate(date.getDate() + 2); // Пн -> Ср
+        else if (day === 2) pairDate.setDate(date.getDate() + 2); // Вт -> Чт
+        else if (day === 3) pairDate.setDate(date.getDate() + 5); // Ср -> Пн (след.нед)
+        else if (day === 4) pairDate.setDate(date.getDate() + 5); // Чт -> Вт (след.нед)
+        else return null;
+        return pairDate;
+    }
+
+    function saveAppointment(clientId, serviceId, dateStr, timeStr, notes, subType = "single", editId = null) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const startDate = new Date(y, m - 1, d);
+        const service = services.find(s => s.id === serviceId);
+        if (service && service.name.includes("Подготовка к школе")) {
+        // Если пользователь пытается выбрать любой тип, кроме "single" (разового)
+        if (subType !== "single") {
+            return { error: "Подготовка к школе может быть только разовым занятием!" };
+        }
+    }
+        if (service && service.name.includes("Первичное обследование")) {
+        const existingExam = appointments.find(a => 
+            a.clientId === clientId && 
+            services.find(s => s.id === a.serviceId)?.name.includes("Первичное обследование") &&
+            a.id !== editId // Исключаем текущую запись, если мы её редактируем
+        );
+
+        if (existingExam) {
+            return { error: "У этого ребенка уже есть первичное обследование!" };
+        }
+    }
+
+        if (!service) return { error: "Услуга не выбрана" };
+
+        if (service.id === "svc_exam" && subType !== "single") {
+            return { error: "Первичное обследование можно оформить только как разовое занятие!" };
+        }
+
+        const check = canAddAppointment(startDate, timeStr, serviceId, editId);
+        if (!check.ok) return { error: check.reason };
+
+        let backupApps = [...appointments];
+        if (editId) {
+            const oldApp = appointments.find(a => a.id === editId);
+            if (oldApp) {
+                const oldDate = new Date(oldApp.startDateTime.slice(0, 10));
+                const oldTime = oldApp.startDateTime.slice(11, 16);
+                const oldPair = getPairDateSameWeek(oldDate);
+                if (oldPair) {
+                    const oldPairIso = `${formatLocalDate(oldPair)}T${oldTime}`;
+                    appointments = appointments.filter(a => !(a.startDateTime === oldPairIso && a.clientId === oldApp.clientId && a.serviceId === oldApp.serviceId));
+                }
+                appointments = appointments.filter(a => a.id !== editId);
+            }
+        }
+
+        const targetIso = `${dateStr}T${timeStr}`;
+
+        if (service.id === "svc_school") {
+            appointments.push({
+                id: editId || Date.now() + Math.random(),
+                clientId, serviceId,
+                startDateTime: targetIso,
+                notes: notes || ""
+            });
+            saveToLocalStorage();
+            return { success: true };
+        }
+
+        // ================= ЛОГИКА АБОНЕМЕНТА НА 8 ЗАНЯТИЙ =================
+        if (subType === "subscription") {
+            const chosenDay = startDate.getDay();
+            let targetDates = [];
+
+            if (chosenDay === 2 || chosenDay === 4) {
+                if (chosenDay === 2) {
+                    for (let i = 0; i < 4; i++) {
+                        let tut = new Date(startDate); tut.setDate(startDate.getDate() + i * 7);
+                        let thu = new Date(startDate); thu.setDate(startDate.getDate() + i * 7 + 2);
+                        targetDates.push(tut, thu);
+                    }
+                } else {
+                    targetDates.push(new Date(startDate));
+                    for (let i = 1; i <= 3; i++) {
+                        let tut = new Date(startDate); tut.setDate(startDate.getDate() + i * 7 - 2);
+                        let thu = new Date(startDate); thu.setDate(startDate.getDate() + i * 7);
+                        targetDates.push(tut, thu);
+                    }
+                    let finalTut = new Date(startDate); finalTut.setDate(startDate.getDate() + 4 * 7 - 2);
+                    targetDates.push(finalTut);
+                }
+            } else if (chosenDay === 1 || chosenDay === 3) {
+                if (chosenDay === 1) {
+                    for (let i = 0; i < 4; i++) {
+                        let mon = new Date(startDate); mon.setDate(startDate.getDate() + i * 7);
+                        let wed = new Date(startDate); wed.setDate(startDate.getDate() + i * 7 + 2);
+                        targetDates.push(mon, wed);
+                    }
+                } else {
+                    targetDates.push(new Date(startDate));
+                    for (let i = 1; i <= 3; i++) {
+                        let mon = new Date(startDate); mon.setDate(startDate.getDate() + i * 7 - 2);
+                        let wed = new Date(startDate); wed.setDate(startDate.getDate() + i * 7);
+                        targetDates.push(mon, wed);
+                    }
+                    let finalMon = new Date(startDate); finalMon.setDate(startDate.getDate() + 4 * 7 - 2);
+                    targetDates.push(finalMon);
+                }
+            } else {
+                appointments = backupApps;
+                return { error: "Запись по абонементу возможна только на рабочие дни (Пн, Вт, Ср, Чт)!" };
+            }
+
+            for (let d of targetDates) {
+                const chk = canAddAppointment(d, timeStr, serviceId, editId);
+                if (!chk.ok) {
+                    appointments = backupApps;
+                    return { error: `Ошибка бронирования абонемента: дата ${d.toLocaleDateString('ru-RU')} в ${timeStr} уже занята другим ребенком!` };
+                }
+            }
+
+            targetDates.forEach((d, index) => {
+                const daysOfWeekNames = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+                appointments.push({
+                    id: Date.now() + Math.random() + index,
+                    clientId, serviceId,
+                    startDateTime: `${formatLocalDate(d)}T${timeStr}`,
+                    notes: `Абонемент (${daysOfWeekNames[d.getDay()]}): занятие ${index + 1}/8. ${notes || ''}`
+                });
+            });
+
+            saveToLocalStorage();
+            return { success: true };
+
+        } else if (subType === "pair") {
+            // ================= ПАРНОЕ ЗАНЯТИЕ =================
+            const pairDate = calculatePairDate(startDate);
+            
+            if (pairDate) {
+                // Проверяем возможность бронирования второй даты
+                const pairCheck = canAddAppointment(pairDate, timeStr, serviceId, editId);
+                
+                if (!pairCheck.ok) {
+                    appointments = backupApps; // Откат изменений
+                    return { error: `Вторая часть парного занятия на ${pairDate.toLocaleDateString('ru-RU')} в ${timeStr} занята другим ребенком!` };
+                }
+                
+                // Сохраняем первое занятие
+                appointments.push({
+                    id: editId || Date.now() + Math.random(),
+                    clientId, serviceId,
+                    startDateTime: targetIso,
+                    notes: notes || ""
+                });
+
+                // Сохраняем второе занятие
+                appointments.push({
+                    id: Date.now() + Math.random() + 1,
+                    clientId, serviceId,
+                    startDateTime: `${formatLocalDate(pairDate)}T${timeStr}`,
+                    notes: `[Парное] ${notes || ''}`
+                });
+            } else {
+                // Если день не подходит для пары, сохраняем как обычное
+                appointments.push({
+                    id: editId || Date.now() + Math.random(),
+                    clientId, serviceId,
+                    startDateTime: targetIso,
+                    notes: notes || ""
+                });
+            }
+            saveToLocalStorage();
+            return { success: true };
+        } else {
+            // ================= РАЗОВОЕ ОДИНОЧНОЕ ЗАНЯТИЕ =================
+            appointments.push({
+                id: editId || Date.now() + Math.random(),
+                clientId, serviceId,
+                startDateTime: targetIso,
+                notes: notes || ""
+            });
+            saveToLocalStorage();
+            return { success: true };
+        }
+    }
+
+    function deleteAppointment(id) {
+    const appToDelete = appointments.find(a => a.id === id);
+    if (!appToDelete) return;
+
+    const isSubscription = appToDelete.notes && appToDelete.notes.includes("Абонемент");
+
+    if (isSubscription) {
+        // --- ЛОГИКА ДЛЯ АБОНЕМЕНТА ОСТАЕТСЯ БЕЗ ИЗМЕНЕНИЙ ---
+        const childApps = appointments.filter(a => a.clientId === appToDelete.clientId && a.serviceId === appToDelete.serviceId && a.notes.includes("Абонемент"));
+        
+        let maxDate = new Date(appToDelete.startDateTime.slice(0, 10));
+        childApps.forEach(a => {
+            const d = new Date(a.startDateTime.slice(0, 10));
+            if (d > maxDate) maxDate = d;
+        });
+
+        const appDate = new Date(appToDelete.startDateTime.slice(0, 10));
+        const timeStr = appToDelete.startDateTime.slice(11, 16);
+        const deletedDayOfWeek = appDate.getDay();
+
+        let nextEndDate = new Date(maxDate);
+        let found = false;
+        let safetyCounter = 0;
+
+        while (!found && safetyCounter < 100) {
+            safetyCounter++;
+            nextEndDate.setDate(nextEndDate.getDate() + 1);
+            
+            if (nextEndDate.getDay() === deletedDayOfWeek) {
+                const check = canAddAppointment(nextEndDate, timeStr, appToDelete.serviceId);
+                if (check.ok) {
+                    found = true;
+                }
+            }
+        }
+
+        if (found) {
+            const daysOfWeekNames = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+            const cleanNotes = appToDelete.notes.replace(/Абонемент\s*\(.*?\):\s*занятие\s*\d+\/\d+\.\s*/g, "").trim();
+            
+            appointments.push({
+                id: Date.now() + Math.random(),
+                clientId: appToDelete.clientId,
+                serviceId: appToDelete.serviceId,
+                startDateTime: `${formatLocalDate(nextEndDate)}T${timeStr}`,
+                notes: `Абонемент (${daysOfWeekNames[deletedDayOfWeek]}): занятие (перенос в конец). ${cleanNotes}`
+            });
+            alert(`Занятие отменено. Новое занятие добавлено в конец абонемента на ${nextEndDate.toLocaleDateString('ru-RU')} в ${timeStr}`);
+        } else {
+            alert("Предупреждение: Не удалось автоматически найти свободное окно в конце расписания для переноса занятия. Время занято другим ребенком.");
+        }
+    } 
+    // --- БЛОК УДАЛЕНИЯ ПАРЫ УДАЛЕН ---
+    // Теперь любое занятие (включая парные) проходит через общий фильтр ниже
+
+    appointments = appointments.filter(a => a.id !== id);
+    saveToLocalStorage();
+    renderAll();
+}
+    function deleteClient(clientId) {
+        if (confirm("Удалить ребёнка и все его записи?")) {
+            appointments = appointments.filter(a => a.clientId !== clientId);
+            clients = clients.filter(c => c.id !== clientId);
+            saveToLocalStorage();
+            renderAll();
+        }
+    }
+
+    function getClientName(id) {
+        const c = clients.find(c => c.id === id);
+        return c ? c.fullName : "Неизвестно";
+    }
+
+    function handleServiceChange() {
+        const serviceSelect = document.getElementById('appointmentServiceId');
+        const subTypeSelect = document.getElementById('subscriptionType');
+        const selectedServiceId = serviceSelect.value;
+        const date = document.getElementById('appointmentDate').value;
+
+        if (!serviceSelect || !subTypeSelect) return;
+
+        const selectedService = services.find(s => s.id === serviceSelect.value);
+        
+        // Если выбрана "Подготовка к школе"
+        if (selectedService && selectedService.name.includes("Подготовка к школе")) {
+            // Оставляем только "Разовое" (single)
+            Array.from(subTypeSelect.options).forEach(option => {
+                if (option.value !== 'single') {
+                    option.style.display = 'none'; // Скрываем остальные
+                }
+            });
+            // Если был выбран не single, сбрасываем на single
+            if (subTypeSelect.value !== 'single') {
+                subTypeSelect.value = 'single';
+            }
+        } else {
+            // Если выбрана другая услуга - показываем все варианты
+            Array.from(subTypeSelect.options).forEach(option => {
+                option.style.display = 'block';
+            });
+        }
+
+        if (selectedServiceId === "svc_exam") {
+            subTypeSelect.value = "single";
+            Array.from(subTypeSelect.options).forEach(opt => {
+                if (opt.value !== "single") opt.disabled = true;
+            });
+        } else {
+            Array.from(subTypeSelect.options).forEach(opt => {
+                opt.disabled = false;
+            });
+        }
+
+        if (date) updateTimeSelect(date);
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem(STORAGE_KEYS.clients, JSON.stringify(clients));
+        localStorage.setItem(STORAGE_KEYS.services, JSON.stringify(services));
+        localStorage.setItem(STORAGE_KEYS.appointments, JSON.stringify(appointments));
+        localStorage.setItem(STORAGE_KEYS.disorders, JSON.stringify(speechDisordersList));
+    }
+
+    function loadFromLocalStorage() {
+        const storedClients = localStorage.getItem(STORAGE_KEYS.clients);
+        const storedServices = localStorage.getItem(STORAGE_KEYS.services);
+        const storedApps = localStorage.getItem(STORAGE_KEYS.appointments);
+        const storedDisorders = localStorage.getItem(STORAGE_KEYS.disorders);
+
+        services = storedServices ? JSON.parse(storedServices) : defaultServices;
+        appointments = storedApps ? JSON.parse(storedApps) : [];
+        clients = storedClients ? JSON.parse(storedClients) : initDefaultClients();
+        speechDisordersList = storedDisorders ? JSON.parse(storedDisorders) : ["Дизартрия (массаж)", "Дислалия", "Запуск речи", "Рече-слуховая агнозия", "Диспраксия", "Другое"];
+
+        if (appointments.length === 0 && clients.length > 0) {
+            const today = new Date();
+            let demoDate = new Date(today);
+            demoDate.setDate(today.getDate() + 1);
+            while (demoDate.getDay() < 1 || demoDate.getDay() > 4) demoDate.setDate(demoDate.getDate() + 1);
+            appointments.push({
+                id: 1001,
+                clientId: clients[0].id,
+                serviceId: "svc_exam",
+                startDateTime: `${formatLocalDate(demoDate)}T09:00`,
+                notes: "Первичный приём"
+            });
+        }
+        saveToLocalStorage();
+    }
+
+    function renderMonthView(date) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const firstDay = new Date(year, month, 1);
+        let start = new Date(firstDay);
+        start.setDate(1 - (firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1));
+
+        let html = `<div class="month-grid">`;
+        for (let i = 0; i < 6; i++) {
+            html += `<div class="week-row">`;
+            for (let j = 0; j < 7; j++) {
+                let day = new Date(start);
+                day.setDate(start.getDate() + i * 7 + j);
+                const isCurrent = day.getMonth() === month;
+                const formattedDate = formatLocalDate(day);
+                
+                const dayApps = appointments.filter(a => a.startDateTime.startsWith(formattedDate));
+                
+                html += `<div class="month-day-cell ${!isCurrent ? 'weekend-day' : ''}" data-date="${formattedDate}">
+                            <div class="month-day-header">${day.getDate()}</div>`;
+                for (let app of dayApps.slice(0, 4)) {
+                    const svc = services.find(s => s.id === app.serviceId);
+                    html += `<div class="month-event" style="background: ${svc?.color || '#e9ecef'}" title="${getClientName(app.clientId)} - ${svc?.name || ''}\nЗаметки: ${app.notes || ''}">
+                                ${getClientName(app.clientId).split(' ')[0]}
+                                <button class="icon-btn del-app-month" data-id="${app.id}" style="font-size: 0.6rem;">🗑️</button>
+                            </div>`;
+                }
+                if (dayApps.length > 4) html += `<div class="text-small">+${dayApps.length - 4}</div>`;
+                html += `</div>`;
+            }
+            html += `</div>`;
+        }
+        html += `</div>`;
+        document.getElementById('calendarContainer').innerHTML = html;
+
+        document.querySelectorAll('.del-app-month').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm("Удалить эту запись?")) deleteAppointment(parseFloat(btn.dataset.id));
+            });
+        });
+        document.querySelectorAll('.month-day-cell').forEach(cell => {
+            cell.addEventListener('click', (e) => {
+                if (e.target.classList.contains('del-app-month')) return;
+                const dateStr = cell.dataset.date;
+                if (dateStr) document.getElementById('appointmentDate').value = dateStr;
+                updateTimeSelect(dateStr);
+            });
+        });
+    }
+
+    function renderWeekView(centerDate) {
+        let mon = new Date(centerDate);
+        mon.setDate(centerDate.getDate() - (centerDate.getDay() === 0 ? 6 : centerDate.getDay() - 1));
+        let days = [];
+        for (let i = 0; i < 4; i++) {
+            let d = new Date(mon);
+            d.setDate(mon.getDate() + i);
+            days.push(d);
+        }
+
+        let html = `<div class="week-columns">`;
+        for (let day of days) {
+            const dayOfWeek = day.getDay();
+            const slots = scheduleMap[dayOfWeek] || [];
+            const formattedDate = formatLocalDate(day);
+            
+            html += `<div class="week-day-col"><div class="week-day-header">${day.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' })}</div>`;
+            for (let time of slots) {
+                const targetIso = `${formattedDate}T${time}`;
+                const apps = appointments.filter(a => a.startDateTime === targetIso);
+                
+                let cls = "week-slot ";
+                if (apps.length === 0) cls += "slot-free";
+                else {
+                    const svc = services.find(s => s.id === apps[0].serviceId);
+                    if (svc?.id === "svc_school") cls += "slot-group";
+                    else cls += "slot-busy";
+                }
+                let content = `<div class="appointment-info"><small>${time}</small><br>`;
+                if (apps.length === 0) content += `Свободно`;
+                else {
+                    const svc = services.find(s => s.id === apps[0].serviceId);
+                    content += `<strong>${getClientName(apps[0].clientId)}</strong><br>${svc?.name || ''}<br><span style="font-size:0.6rem;color:#555;">${apps[0].notes || ''}</span>`;
+                    content += `<div class="actions-icons"><button class="icon-btn del-app-week" data-id="${apps[0].id}">🗑️</button></div>`;
+                }
+                content += `</div>`;
+                html += `<div class="${cls}" data-date="${formattedDate}" data-time="${time}">${content}</div>`;
+            }
+            html += `</div>`;
+        }
+        html += `</div>`;
+        document.getElementById('calendarContainer').innerHTML = html;
+
+        document.querySelectorAll('.del-app-week').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm("Удалить эту запись?")) deleteAppointment(parseFloat(btn.dataset.id));
+            });
+        });
+        document.querySelectorAll('.week-slot').forEach(el => {
+            if (el.classList.contains('slot-free')) {
+                const date = el.dataset.date;
+                const time = el.dataset.time;
+                el.addEventListener('click', () => {
+                    if (date && time) {
+                        document.getElementById('appointmentDate').value = date;
+                        updateTimeSelect(date);
+                        const ts = document.getElementById('appointmentTime');
+                        Array.from(ts.options).forEach(opt => {
+                            if (opt.value === time) opt.selected = true;
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    function renderDayView(date) {
+        const dayOfWeek = date.getDay();
+        const slots = scheduleMap[dayOfWeek] || [];
+        const formattedDate = formatLocalDate(date);
+        
+        let html = `<div><strong>${date.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></div>
+                    <div class="week-columns"><div class="week-day-col" style="flex:1">`;
+        for (let time of slots) {
+            const targetIso = `${formattedDate}T${time}`;
+            const apps = appointments.filter(a => a.startDateTime === targetIso);
+            
+            let cls = "week-slot ";
+            if (apps.length === 0) cls += "slot-free";
+            else {
+                const svc = services.find(s => s.id === apps[0].serviceId);
+                if (svc?.type === "individual") cls += "slot-busy";
+                else cls += "slot-group";
+            }
+            let content = `<div class="appointment-info"><strong>${time}</strong><br>`;
+            if (apps.length === 0) content += `Свободно`;
+            else {
+                const svc = services.find(s => s.id === apps[0].serviceId);
+                content += `<strong>${getClientName(apps[0].clientId)}</strong><br>${svc?.name || ''}<br><span style="font-size:0.6rem;color:#555;">${apps[0].notes || ''}</span>`;
+                content += `<div class="actions-icons"><button class="icon-btn del-app-day" data-id="${apps[0].id}">🗑️</button></div>`;
+            }
+            content += `</div>`;
+            html += `<div class="${cls}" data-date="${formattedDate}" data-time="${time}">${content}</div>`;
+        }
+        html += `</div></div>`;
+        document.getElementById('calendarContainer').innerHTML = html;
+
+        document.querySelectorAll('.del-app-day').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm("Удалить эту запись?")) deleteAppointment(parseFloat(btn.dataset.id));
+            });
+        });
+        document.querySelectorAll('.week-slot').forEach(el => {
+            if (el.classList.contains('slot-free')) {
+                const date = el.dataset.date;
+                const time = el.dataset.time;
+                el.addEventListener('click', () => {
+                    if (date && time) {
+                        document.getElementById('appointmentDate').value = date;
+                        updateTimeSelect(date);
+                        const ts = document.getElementById('appointmentTime');
+                        Array.from(ts.options).forEach(opt => {
+                            if (opt.value === time) opt.selected = true;
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    function updateTimeSelect(dateStr) {
+        const ts = document.getElementById('appointmentTime');
+        if (!dateStr) {
+            ts.innerHTML = '<option value="">Сначала выберите дату</option>';
+            return;
+        }
+        const date = new Date(dateStr);
+        const serviceId = document.getElementById('appointmentServiceId').value;
+        if (!serviceId) {
+            ts.innerHTML = '<option value="">Сначала выберите услугу</option>';
+            return;
+        }
+        const day = date.getDay();
+        if (day < 1 || day > 4) {
+            ts.innerHTML = '<option value="">Выходной день</option>';
+            return;
+        }
+        const slots = scheduleMap[day] || [];
+        const available = [];
+        for (let t of slots) {
+            const check = canAddAppointment(date, t, serviceId, editAppointmentId);
+            if (check.ok) available.push(t);
+        }
+        if (available.length === 0) ts.innerHTML = '<option value="">Нет свободного времени</option>';
+        else ts.innerHTML = '<option value="">-- Выберите время --</option>' + available.map(t => `<option value="${t}">${t}</option>`).join('');
+    }
+
+    function renderSidebars() {
+        const clientSelect = document.getElementById('appointmentClientId');
+        clientSelect.innerHTML = '<option value="">-- Выберите ребёнка --</option>' +
+            clients.map(c => `<option value="${c.id}">${c.fullName} (${c.age})</option>`).join('');
+
+        const serviceSelect = document.getElementById('appointmentServiceId');
+        serviceSelect.innerHTML = services.map(s => `<option value="${s.id}">${s.name} (${s.durationMin}мин, ${s.price})</option>`).join('');
+
+        const clientList = document.getElementById('clientListContainer');
+        clientList.innerHTML = clients.map(c => `
+            <div class="client-list-item">
+                <div class="client-name">${c.fullName}, ${c.age}</div>
+                <div>Родитель: ${c.parentName} | Тел: ${c.phone}</div>
+                <div>Диагноз: ${c.speechDisorder} | Звуки: ${c.speechSounds}</div>
+                <div class="actions-icons">
+                    <button class="icon-btn edit-client" data-id="${c.id}">✏️ Ред.</button>
+                    <button class="icon-btn del-client" data-id="${c.id}">🗑️ Удалить</button>
+                </div>
+            </div>
+        `).join('');
+
+        document.querySelectorAll('.edit-client').forEach(btn => {
+            btn.addEventListener('click', () => openClientModal(btn.dataset.id));
+        });
+        document.querySelectorAll('.del-client').forEach(btn => {
+            btn.addEventListener('click', () => deleteClient(btn.dataset.id));
+        });
+
+        const servicesDiv = document.getElementById('serviceListContainer');
+        servicesDiv.innerHTML = services.map(s => `
+            <div class="service-list-item" style="background: ${s.color}">
+                <b>${s.name}</b> | ${s.durationMin} мин | ${s.type === 'individual' ? '👤 индивидуально' : '👥 группа (до ' + s.maxCapacity + ')'} | ${s.price}
+            </div>
+        `).join('');
+
+        const today = new Date();
+        const freeSlots = [];
+        const daySlots = scheduleMap[today.getDay()] || [];
+        for (let t of daySlots) {
+            const check = canAddAppointment(today, t, "svc_usual", null);
+            if (check.ok) freeSlots.push(t);
+        }
+        document.getElementById('freeSlotsList').innerHTML = freeSlots.length ?
+            freeSlots.map(t => `<div>🕒 ${t}</div>`).join('') : "<div>Нет свободных окон</div>";
+
+        handleServiceChange();
+    }
+
+    function openClientModal(clientId = null) {
+        const client = clientId ? clients.find(c => c.id === clientId) : null;
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>${client ? 'Редактировать карту ребёнка' : 'Новая логопедическая карта'}</h3>
+                <div class="form-group"><label>ФИО ребёнка *</label><input id="m_name" value="${client?.fullName || ''}"></div>
+                <div class="form-group"><label>Возраст</label><input id="m_age" value="${client?.age || ''}" placeholder="5 лет 3 месяца"></div>
+                <div class="form-group"><label>ФИО родителя</label><input id="m_parent" value="${client?.parentName || ''}"></div>
+                <div class="form-group"><label>Телефон</label><input id="m_phone" value="${client?.phone || ''}"></div>
+                <div class="medical-checks">
+                    <label><input type="checkbox" id="m_sur" ${client?.medical?.surdolog ? 'checked' : ''}> Пройден сурдолог</label>
+                    <label><input type="checkbox" id="m_psi" ${client?.medical?.psikhiatr ? 'checked' : ''}> Пройден психиатр</label>
+                    <label><input type="checkbox" id="m_nvr" ${client?.medical?.nevrolog ? 'checked' : ''}> Пройден невролог</label>
+                </div>
+                <div class="form-group"><label>Анамнез</label><textarea id="m_anam" rows="2">${client?.anamnesis || ''}</textarea></div>
+                <div class="form-group"><label>Речевые нарушения</label>
+                    <select id="m_dis">${speechDisordersList.map(d => `<option ${client?.speechDisorder === d ? 'selected' : ''}>${d}</option>`).join('')}</select>
+                    <div class="add-disorder-btn" id="addDisorderBtn">+ Добавить новое нарушение</div>
+                </div>
+                <div class="form-group"><label>Нарушенные звуки</label><input id="m_sounds" value="${client?.speechSounds || ''}" placeholder="Р, Л, С"></div>
+                <div class="form-group"><label>Дополнительная информация</label><textarea id="m_extra" rows="2">${client?.extraInfo || ''}</textarea></div>
+                <div class="flex-between"><button class="primary" id="saveModal">Сохранить</button><button class="secondary" id="closeModal">Отмена</button></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        document.getElementById('addDisorderBtn').onclick = () => {
+            const newDisorder = prompt("Введите новое речевое нарушение:", "");
+            if (newDisorder && newDisorder.trim()) {
+                speechDisordersList.push(newDisorder.trim());
+                saveToLocalStorage();
+                const select = modal.querySelector('#m_dis');
+                const option = document.createElement('option');
+                option.text = newDisorder.trim();
+                option.value = newDisorder.trim();
+                select.appendChild(option);
+                select.value = newDisorder.trim();
+                alert(`Нарушение "${newDisorder}" добавлено!`);
+            }
+        };
+
+        modal.querySelector('#saveModal').onclick = () => {
+            const newClient = {
+                id: client?.id || Date.now().toString(),
+                fullName: modal.querySelector('#m_name').value.trim() || "Новый ребёнок",
+                age: modal.querySelector('#m_age').value || "не указан",
+                parentName: modal.querySelector('#m_parent').value || "",
+                phone: modal.querySelector('#m_phone').value || "",
+                medical: {
+                    surdolog: modal.querySelector('#m_sur').checked,
+                    psikhiatr: modal.querySelector('#m_psi').checked,
+                    nevrolog: modal.querySelector('#m_nvr').checked
+                },
+                anamnesis: modal.querySelector('#m_anam').value || "",
+                speechDisorder: modal.querySelector('#m_dis').value,
+                speechSounds: modal.querySelector('#m_sounds').value || "",
+                extraInfo: modal.querySelector('#m_extra').value || ""
+            };
+            if (client) {
+                clients = clients.map(c => c.id === client.id ? newClient : c);
+            } else {
+                clients.push(newClient);
+            }
+            saveToLocalStorage();
+            renderAll();
+            modal.remove();
+        };
+        modal.querySelector('#closeModal').onclick = () => modal.remove();
+    }
+
+    function renderAll() {
+        if (currentView === 'day') renderDayView(currentDate);
+        else if (currentView === 'week') renderWeekView(currentDate);
+        else renderMonthView(currentDate);
+        renderSidebars();
+
+        let label = "";
+        if (currentView === 'day') label = currentDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        else if (currentView === 'week') {
+            let mon = new Date(currentDate);
+            mon.setDate(currentDate.getDate() - (currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1));
+            let thu = new Date(mon);
+            thu.setDate(mon.getDate() + 3);
+            label = `${mon.getDate()} - ${thu.getDate()} ${thu.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })} (Пн-Чт)`;
+        }
+        else label = currentDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+        document.getElementById('currentPeriodLabel').innerText = label;
+    }
+
+    function navigate(delta) {
+        if (currentView === 'day') currentDate.setDate(currentDate.getDate() + delta);
+        else if (currentView === 'week') currentDate.setDate(currentDate.getDate() + delta * 7);
+        else currentDate.setMonth(currentDate.getMonth() + delta);
+        renderAll();
+    }
+
+    function formatLocalDate(date) {
+        const offset = date.getTimezoneOffset();
+        const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
+        return adjustedDate.toISOString().split('T')[0];
+    }
+
+    function canAddAppointment(date, timeStr, serviceId, ignoreId = null) {
+        const dateStr = formatLocalDate(new Date(date));
+        const targetIso = `${dateStr}T${timeStr}`;
+        const service = services.find(s => s.id === serviceId);
+        if (!service) return { ok: false, reason: "Услуга не найдена" };
+
+        const parsedDate = new Date(dateStr);
+        const day = parsedDate.getDay();
+        if (day < 1 || day > 4) return { ok: false, reason: "Выходной день (Пн-Чт)" };
+        
+        const [h] = timeStr.split(':').map(Number);
+        if (h === 13) return { ok: false, reason: "Обеденный перерыв 13:00-14:00" };
+        if (!scheduleMap[day] || !scheduleMap[day].includes(timeStr)) {
+            return { ok: false, reason: "Это время не входит в расписание" };
+        }
+        if (service.id === "svc_school") {
+            if (day !== 1 && day !== 3) return { ok: false, reason: "Подготовка к школе только по понедельникам и средам" };
+            if (timeStr !== "17:20") return { ok: false, reason: "Подготовка к школе только в 17:20" };
+        }
+
+        const existing = appointments.filter(a => a.startDateTime === targetIso && a.id !== ignoreId);
+        if (service.type === "individual" && existing.length > 0) {
+            return { ok: false, reason: `Это время уже занято ребенком: ${getClientName(existing[0].clientId)}` };
+        }
+        if (service.type === "group" && existing.length >= service.maxCapacity) {
+            return { ok: false, reason: `Группа заполнена (макс ${service.maxCapacity})` };
+        }
+        return { ok: true };
+    }
+
+    function getPairDateSameWeek(date) {
+        const day = date.getDay();
+        let pairDate = new Date(date);
+        if (day === 1) pairDate.setDate(date.getDate() + 2);
+        else if (day === 2) pairDate.setDate(date.getDate() + 2);
+        else if (day === 3) pairDate.setDate(date.getDate() + 5);
+        else if (day === 4) pairDate.setDate(date.getDate() + 5);
+        else return null;
+        return pairDate;
+    }
+
+    loadFromLocalStorage();
+    renderAll();
+
+    document.getElementById('appointmentServiceId').onchange = handleServiceChange;
+    document.getElementById('appointmentDate').onchange = (e) => updateTimeSelect(e.target.value);
+    
+    document.getElementById('saveAppointmentBtn').onclick = () => {
+        const cid = document.getElementById('appointmentClientId').value;
+        const sid = document.getElementById('appointmentServiceId').value;
+        const date = document.getElementById('appointmentDate').value;
+        const time = document.getElementById('appointmentTime').value;
+        const notes = document.getElementById('appointmentNotes').value;
+        const subType = document.getElementById('subscriptionType')?.value || "single";
+        if (!cid || !sid || !date || !time) {
+            document.getElementById('appointmentError').innerText = "Заполните все поля";
+            return;
+        }
+        const res = saveAppointment(cid, sid, date, time, notes, subType, editAppointmentId);
+        if (res.error) {
+            document.getElementById('appointmentError').innerText = res.error;
+        } else {
+            editAppointmentId = null;
+            document.getElementById('appointmentError').innerText = "";
+            document.getElementById('appointmentNotes').value = "";
+            renderAll();
+        }
+    };
+    document.getElementById('cancelAppointmentBtn').onclick = () => {
+        editAppointmentId = null;
+        document.getElementById('appointmentDate').value = "";
+        document.getElementById('appointmentTime').innerHTML = "";
+        document.getElementById('appointmentNotes').value = "";
+        document.getElementById('appointmentError').innerText = "";
+        handleServiceChange();
+    };
+    document.getElementById('addClientBtn').onclick = () => openClientModal();
+    document.getElementById('prevPeriodBtn').onclick = () => navigate(-1);
+    document.getElementById('nextPeriodBtn').onclick = () => navigate(1);
+    document.getElementById('todayBtn').onclick = () => {
+        currentDate = new Date();
+        renderAll();
+    };
+    document.getElementById('refreshFreeSlots').onclick = () => renderAll();
+    document.querySelectorAll('.btn-view').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentView = btn.dataset.view;
+            document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderAll();
+        });
+    });
+</script>
+</body>
+</html>
